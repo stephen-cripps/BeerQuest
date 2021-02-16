@@ -131,6 +131,3 @@ tags|string|Comma separated tags. Filters out any venues which don't have at lea
         ]
     },
 ```
-# TODO
-- Check Cancellation token usage
-- think about exception handling in repo some more

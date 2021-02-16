@@ -83,7 +83,7 @@ Here I've outlined additional features that would be part of the MVP, along with
 - [Azure Functions Core Tools V3.x](https://github.com/Azure/azure-functions-core-tools)
 - Visual Studio 2019
 ## Debugging
-To Run the program, simply run the BeerQuest.Functions project from within Visual Studio. The functions SDK will automatically start up to the storage emulator, and a triggered function has been built to create populate the table on startup for the purpose of this exercise.
+To Run the program, simply run the BeerQuest.Functions project from within Visual Studio. The functions SDK will automatically start up to the storage emulator, and a triggered function has been built to create populate the table on startup from the CSV for the purpose of this exercise.
 ## Api Definition
 ### GetVenues 
 #### Request
@@ -129,5 +129,5 @@ tags|string|Comma separated tags. Filters out any venues which don't have at lea
         "tags": [
             ""
         ]
-    },
+}
 ```

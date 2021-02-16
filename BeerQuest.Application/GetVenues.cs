@@ -38,7 +38,6 @@ namespace BeerQuest.Application
             public int MaxDistKm { get; set; } = 0;
             public string Category { get; set; }
             public string NameSearch { get; set; }
-            [JsonIgnore]
             public List<string> SelectedTags { get; set; } = new List<string>();
         }
 
@@ -69,8 +68,8 @@ namespace BeerQuest.Application
         /// </summary>
         public class Handler : IRequestHandler<Request, IEnumerable<Result>>
         {
-            IVenueRepository repo;
-            IMapper mapper;
+            readonly IVenueRepository repo;
+            readonly IMapper mapper;
 
             public Handler(IVenueRepository repo, IMapper mapper)
             {
@@ -89,7 +88,7 @@ namespace BeerQuest.Application
             {
                 ValidateRequest(request);
 
-                var venues = await repo.QueryVenues(ToExpression(request));
+                var venues = await repo.QueryVenues(ToExpression(request), token);
 
                 return venues.Select(mapper.Map<Result>);
             }

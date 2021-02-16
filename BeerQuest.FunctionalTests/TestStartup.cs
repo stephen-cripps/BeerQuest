@@ -1,25 +1,22 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using BeerQuest.Application;
 using BeerQuest.Application.Storage;
 using BeerQuest.Functions;
-using BeerQuest.TableStorage;
+using BeerQuest.Tests;
 using MediatR;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(Startup))]
-namespace BeerQuest.Functions
+namespace BeerQuest.
+    s
 {
-    public class Startup : FunctionsStartup
+    public class TestStartup : FunctionsStartup
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
 
             var services = builder.Services;
-
-            services.AddLogging();
 
             //Mapper
             var assembly = typeof(GetVenues).Assembly;
@@ -35,17 +32,9 @@ namespace BeerQuest.Functions
             services
                 .AddMediatR(assembly);
 
-            //Storage
+            //Storage (Replaced with mock storage)
             services
-                .AddTransient<IVenueRepository, VenueRepository>()
-                .AddTransient(sp =>
-                {
-                    var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-
-                    var storageAccount = CloudStorageAccount.Parse(connectionString);
-
-                    return storageAccount.CreateCloudTableClient();
-                });
+                .AddSingleton<IVenueRepository, MockRepository>();
         }
     }
 }

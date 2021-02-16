@@ -53,5 +53,23 @@ namespace BeerQuest.Functions
                 return ex.ToActionResult();
             }
         }
+
+        /// <summary>
+        /// Initialise database on startup. This is only included for the sake of getting data into the Azure table for the exercise.
+        /// A full implementation could make this endpoint accessible to admins and include more features such as data handling and bar updates.
+        /// </summary>
+        /// <param name="myTimer"></param>
+        /// <param name="log"></param>
+        [FunctionName("TimerTriggerCSharp")]
+        public async Task Run([TimerTrigger("0 0 1 1 *", RunOnStartup = true)]
+            TimerInfo myTimer, CancellationToken token)
+        {
+            var createFromCsv = new CreateFromCsv.Request()
+            {
+                Csv = Properties.Resources.leedsbeerquest
+            };
+
+            await mediator.Send(createFromCsv, token);
+        }
     }
 }

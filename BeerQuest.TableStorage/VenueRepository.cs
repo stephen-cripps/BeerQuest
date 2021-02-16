@@ -5,6 +5,7 @@ using BeerQuest.Application.Exceptions;
 using BeerQuest.Core;
 using Microsoft.Azure.Cosmos.Table;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BeerQuest.Application.Storage;
 
@@ -23,8 +24,7 @@ namespace BeerQuest.TableStorage
             this.mapper = mapper;
 
             table = client.GetTableReference(Environment.GetEnvironmentVariable("venues-table"));
-            if (!table.Exists())
-                throw new ServiceNotAvailableException("venues-table does not exist");
+            table.CreateIfNotExists();
         }
 
         /// <summary>
@@ -32,15 +32,64 @@ namespace BeerQuest.TableStorage
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public Task<IEnumerable<Venue>> QueryVenues(Func<Venue, bool> expression)
+        public Task<IEnumerable<Venue>> QueryVenues(Func<Venue, bool> expression, CancellationToken token)
         {
-            var test = table.CreateQuery<VenueDto>()
-                .ToList();
+            try
+            {
+                return Task.FromResult(table.CreateQuery<VenueDto>()
+                    .ToList()
+                    .Select(dto => mapper.Map<Venue>(dto))
+                    .Where(expression));
+            }
+            catch (Exception e)
+            {
+                throw new ServiceNotAvailableException(e.Message);
+            }
+        }
 
-            return Task.FromResult(table.CreateQuery<VenueDto>()
-                .ToList()
-                .Select(dto => mapper.Map<Venue>(dto))
-                .Where(expression));
+
+        /// <summary>
+        /// Adds or updates multiple venues in batches.
+        /// Venues are batched based on their category (up to groups of 100), which is used as the partition key.
+        /// </summary>
+        /// <param name="venues"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task BatchUpsertVenues(IEnumerable<Venue> venues, CancellationToken token)
+        {
+            var dtos = venues.Select(v => mapper.Map<VenueDto>(v)).ToList();
+            var partitions = dtos.Select(d => d.PartitionKey).Distinct();
+
+            foreach (var partition in partitions)
+            {
+                var ops = new TableBatchOperation();
+                var count = 0;
+                foreach (var dto in dtos.Where(d => d.PartitionKey == partition))
+                {
+                    count++;
+                    ops.Add(TableOperation.InsertOrReplace(dto));
+                    if (count < 100) continue;
+
+                    try
+                    {
+                        await table.ExecuteBatchAsync(ops, token);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ServiceNotAvailableException(e.Message);
+                    }
+                    count = 0;
+                    ops = new TableBatchOperation();
+                }
+                try
+                {
+                    await table.ExecuteBatchAsync(ops, token);
+                }
+                catch (Exception e)
+                {
+                    throw new ServiceNotAvailableException(e.Message);
+                }
+            }
         }
     }
 }

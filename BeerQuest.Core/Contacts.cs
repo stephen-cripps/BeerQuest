@@ -2,7 +2,7 @@
 {
     public class Contacts
     {
-         Contacts()
+        Contacts()
         { }
 
         public Contacts(string address, string phone, string twitter)

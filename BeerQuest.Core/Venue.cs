@@ -6,7 +6,7 @@ namespace BeerQuest.Core
     public class Venue
     {
 
-         Venue()
+        Venue()
         { }
 
         public Venue(string name, string category, Uri url, DateTime date, Uri thumbnail, Location location, Contacts contacts, Ratings ratings, IEnumerable<string> tags)

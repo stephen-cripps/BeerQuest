@@ -54,6 +54,26 @@ namespace BeerQuest.Functions
             }
         }
 
+        [FunctionName("GetVenuesDirection")]
+        public async Task<IActionResult> GetVenuesDirection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = null)] HttpRequest req, CancellationToken token)
+        {
+            try
+            {
+                var getVenuesDirection = req.GetQueryAsObject<GetVenuesInDirection.Request>();
+
+                return new OkObjectResult(await mediator.Send(getVenuesDirection, token));
+            }
+            catch (JsonException ex)
+            {
+                return new BadRequestObjectResult(ex.Message);
+            }
+            catch (ApplicationException ex)
+            {
+                return ex.ToActionResult();
+            }
+        }
+
         /// <summary>
         /// Initialise database on startup. This is only included for the sake of getting data into the Azure table for the exercise.
         /// A full implementation could make this endpoint accessible to admins and include more features such as data handling and bar updates.
